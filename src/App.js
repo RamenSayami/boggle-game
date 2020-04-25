@@ -1,26 +1,110 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
+import Square from './square/square';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+
+class Game extends React.Component {
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      board: getBoard(),
+      row: null, 
+      col: null,
+      history: [],
+      currentWordSteps: [],
+      currentWord: ''
+    };
+  }
+
+
+  render() {
+      return (
+          <div className="board">
+            <div className="board-row">
+              {this.renderSquare(0,0)}
+              {this.renderSquare(0,1)}
+              {this.renderSquare(0,2)}
+              {this.renderSquare(0,3)}
+            </div>
+            <div className="board-row">
+              {this.renderSquare(1,0)}
+              {this.renderSquare(1,1)}
+              {this.renderSquare(1,2)}
+              {this.renderSquare(1,3)}
+            </div>
+            <div className="board-row">
+              {this.renderSquare(2,0)}
+              {this.renderSquare(2,1)}
+              {this.renderSquare(2,2)}
+              {this.renderSquare(2,3)}
+            </div>
+            <div className="board-row">
+              {this.renderSquare(3,0)}
+              {this.renderSquare(3,1)}
+              {this.renderSquare(3,2)}
+              {this.renderSquare(3,3)}
+            </div>
+            {this.state.currentWord}
+            <button >Submit Word</button>
+          </div>
+       
+      );
+    }
+
+    renderSquare(i,j) {
+        const higlight = this.highlight(i,j);
+        return <Square 
+        value={this.state.board[i][j]} 
+        highlight ={higlight} 
+        onClick={() => this.handleClick(i,j)}
+        />;
+    }   
+
+    handleClick(i,j) {
+      //check i, j in state is null then only allow, natra dont allow. 
+
+      const currentWord = this.state.currentWord;
+      const currentWordSteps = this.state.currentWordSteps;
+      this.setState({
+        row : i,
+        col : j,
+        currentWord: currentWord.concat(this.state.board[i][j]),
+        currentWordSteps: currentWordSteps.concat({row: i, col: j, letter: this.state.board[i][j] }),
+      })
+
+      console.log(this.state);
+      console.log(i + ',' + j + '=' + this.state.board[i][j]);
+    }
+
+    highlight(i,j) {
+      if(this.state.row != null && this.state.col !=null) {
+        if(this.state.row === i && this.state.col === j) {
+          return false;
+        }
+        if((this.state.row -1 === i || this.state.row === i || this.state.row +1 === i ) 
+           && (this.state.col -1 === j || this.state.col === j || this.state.col +1 === j )){
+          return true;
+        }
+        return false;
+      }
+      return false;
+    }
+
+
 }
 
-export default App;
+
+function getBoard() {
+  //cal backend api to load this up
+  const lines = [
+    ['E','N','M','G'],
+    ['T','S','N','E'],
+    ['Y','E','S','A'],
+    ['S','U','I','T'],
+  ];
+  return lines;
+}
+
+
+export default Game;
