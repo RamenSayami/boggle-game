@@ -96,14 +96,30 @@ class Game extends React.Component {
 
 
 function getBoard() {
+  // const lines = [
+  //   ['E','N','M','G'],
+  //   ['T','S','N','E'],
+  //   ['Y','E','S','A'],
+  //   ['S','U','I','T'],
+  // ];
   //cal backend api to load this up
-  const lines = [
-    ['E','N','M','G'],
-    ['T','S','N','E'],
-    ['Y','E','S','A'],
-    ['S','U','I','T'],
-  ];
-  return lines;
+  const board = [...Array(4)].map(item => Array(4).fill('A'))
+
+  fetch('http://localhost:3000/boards/1')
+  .then(res =>res.json())
+  .then((data) => {
+    console.log(data);
+    data.squares.forEach(square => {
+      console.log(square.i+","+ square.i+"="+square.character)
+      board[square.i][square.j] = square.character;
+      
+    })
+    console.log(board)
+    return board;
+
+  })
+  .catch(console.log)
+  console.log(board[0][0]);
 }
 
 
