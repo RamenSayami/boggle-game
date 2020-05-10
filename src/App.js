@@ -1,6 +1,11 @@
 import React from 'react';
 import './App.css';
 import Square from './square/square';
+// import 'bootstap/dist/css/bootstapbootstrap.min.css' 
+import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
+import Button from 'react-bootstrap/Button';
 
 
 class Game extends React.Component {
@@ -8,46 +13,63 @@ class Game extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      board: getBoard(),
+      board: [...Array(4)].map(item => Array(4).fill('A')),
       row: null, 
       col: null,
+      loading: true,
+      serverNotFound: false,
       history: [],
       currentWordSteps: [],
       currentWord: ''
     };
+    this.getBoard();
   }
 
 
   render() {
       return (
-          <div className="board">
+          <div className="game">
+          {this.state.loading &&  <div class="loader"></div>}
+          {!this.state.loading &&  this.state.serverNotFound && <div> Backend not found! Try running backend first.</div>}
+
+          {!this.state.loading &&  !this.state.serverNotFound &&  <div>
+          <Container>
+            <Row>
+              <Col sm={6}>
             <div className="board-row">
-              {this.renderSquare(0,0)}
-              {this.renderSquare(0,1)}
-              {this.renderSquare(0,2)}
-              {this.renderSquare(0,3)}
-            </div>
-            <div className="board-row">
-              {this.renderSquare(1,0)}
-              {this.renderSquare(1,1)}
-              {this.renderSquare(1,2)}
-              {this.renderSquare(1,3)}
-            </div>
-            <div className="board-row">
-              {this.renderSquare(2,0)}
-              {this.renderSquare(2,1)}
-              {this.renderSquare(2,2)}
-              {this.renderSquare(2,3)}
-            </div>
-            <div className="board-row">
-              {this.renderSquare(3,0)}
-              {this.renderSquare(3,1)}
-              {this.renderSquare(3,2)}
-              {this.renderSquare(3,3)}
-            </div>
-            {this.state.currentWord}
-            <button >Submit Word</button>
+                {this.renderSquare(0,0)}
+                {this.renderSquare(0,1)}
+                {this.renderSquare(0,2)}
+                {this.renderSquare(0,3)}
+              </div>
+              <div className="board-row">
+                {this.renderSquare(1,0)}
+                {this.renderSquare(1,1)}
+                {this.renderSquare(1,2)}
+                {this.renderSquare(1,3)}
+              </div>
+              <div className="board-row">
+                {this.renderSquare(2,0)}
+                {this.renderSquare(2,1)}
+                {this.renderSquare(2,2)}
+                {this.renderSquare(2,3)}
+              </div>
+              <div className="board-row">
+                {this.renderSquare(3,0)}
+                {this.renderSquare(3,1)}
+                {this.renderSquare(3,2)}
+                {this.renderSquare(3,3)}
+              </div>
+              </Col>
+              <Col sm={6}>
+                <input type="text" value={this.state.currentWord}></input>
+                <Button type="submit" onClick={() => this.submitWord()}>Submit</Button>
+              </Col>
+            </Row>
+          </Container>
           </div>
+          } 
+        </div>
        
       );
     }
@@ -61,11 +83,34 @@ class Game extends React.Component {
         />;
     }   
 
+    submitWord() {
+      const currentWord = this.state.currentWord;
+      console.log(currentWord);
+      //submit currentWord
+    }
+
     handleClick(i,j) {
       //check i, j in state is null then only allow, natra dont allow. 
 
       const currentWord = this.state.currentWord;
       const currentWordSteps = this.state.currentWordSteps;
+      const row = this.state.row;
+      const col = this.state.col;
+      if(row != null && col!=null) {
+        console.log('row: ' + row);
+        console.log('col: ' + col);
+
+        console.log('i: ' + i);
+        console.log('j: ' + j);
+
+        console.log(!((row -1) <= i && i <= (row + 1)));
+        console.log(!((col -1) <= j && j <= (col + 1)));
+        console.log(!((row -1) <= i && i  <= (row + 1)) || !((col -1) <= j && j <= (col + 1)) );
+        if( !((row -1) <= i && i  <= (row + 1)) || !((col -1) <= j && j <= (col + 1)) ) {
+          alert('Cannot click this');
+          return;
+        }
+      }
       this.setState({
         row : i,
         col : j,
@@ -91,36 +136,36 @@ class Game extends React.Component {
       return false;
     }
 
-
+    getBoard() {    
+      fetch('http://localhost:3000/boards/1')
+      .then(res =>res.json())
+      .then((data) => {
+        console.log(this.state);
+        const board =  this.state.board;
+    
+        console.log(data);
+        data.squares.forEach(square => {
+          console.log(square.i+","+ square.i+"="+square.character)
+          board[square.i][square.j] = square.character;
+    
+        })
+        console.log(board)
+        this.setState({
+          board : board,
+          loading: false,
+        })
+      })
+      .catch( err=> {
+        this.setState({
+          loading: false,
+          serverNotFound: true
+        })
+        console.log(err);
+      });
+      // console.log(board[0][0]);
+      // return board;
+    
+    }
 }
-
-
-function getBoard() {
-  // const lines = [
-  //   ['E','N','M','G'],
-  //   ['T','S','N','E'],
-  //   ['Y','E','S','A'],
-  //   ['S','U','I','T'],
-  // ];
-  //cal backend api to load this up
-  const board = [...Array(4)].map(item => Array(4).fill('A'))
-
-  fetch('http://localhost:3000/boards/1')
-  .then(res =>res.json())
-  .then((data) => {
-    console.log(data);
-    data.squares.forEach(square => {
-      console.log(square.i+","+ square.i+"="+square.character)
-      board[square.i][square.j] = square.character;
-      
-    })
-    console.log(board)
-    return board;
-
-  })
-  .catch(console.log)
-  console.log(board[0][0]);
-}
-
 
 export default Game;

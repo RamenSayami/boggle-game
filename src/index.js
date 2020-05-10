@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
+// import 'bootstap/dist/css/bootstrap.min.css';
 import Game from './App';
 import * as serviceWorker from './serviceWorker';
 
