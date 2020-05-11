@@ -5,7 +5,6 @@ import Square from './square/square';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
-import Button from 'react-bootstrap/Button';
 
 
 class Game extends React.Component {
@@ -20,9 +19,13 @@ class Game extends React.Component {
       serverNotFound: false,
       history: [],
       currentWordSteps: [],
-      currentWord: ''
+      currentWord: '',
+      correctWords: [],
     };
     this.getBoard();
+    this.textInput = this.textInput.bind(this);
+    this.submitWord = this.submitWord.bind(this);
+
   }
 
 
@@ -62,8 +65,10 @@ class Game extends React.Component {
               </div>
               </Col>
               <Col sm={6}>
-                <input type="text" value={this.state.currentWord}></input>
-                <Button type="submit" onClick={() => this.submitWord()}>Submit</Button>
+              <form onSubmit={()=>this.submitWord()}>
+                <input type="text" value={this.state.currentWord} onChange={(event)=>this.textInput(event)} />
+                <input type="submit" value="Submit" />
+              </form>
               </Col>
             </Row>
           </Container>
@@ -83,9 +88,49 @@ class Game extends React.Component {
         />;
     }   
 
-    submitWord() {
+    textInput(event){
+      this.setState({
+        currentWord: event.target.value,
+        row: null,
+        col: null
+      });
+    }
+
+    submitWord(event) {
       const currentWord = this.state.currentWord;
-      console.log(currentWord);
+      const correctWords = this.state.correctWords;
+      const requestOption = {
+        method: 'post',
+        headers: { 'Content-Type' : 'application/json' },
+        body: JSON.stringify({ word: currentWord})
+      };
+      fetch('http://localhost:3000/boards/1/correct_words/', requestOption)
+        .then(async res => {
+          const payload = await res.json();
+          if (!res.ok) {
+            return Promise.reject(payload.message);
+          }
+          return payload;
+         })
+        .then(data => {
+          correctWords.push(currentWord);
+          this.setState({
+            correctWords: correctWords,
+            row: null,
+            col: null,
+            currentWord: ""
+          })
+
+        })
+        .catch(err => {
+          alert(err);
+          this.setState({
+            row: null,
+            col: null,
+            currentWord: ""
+          })
+
+        })
       //submit currentWord
     }
 
@@ -97,15 +142,6 @@ class Game extends React.Component {
       const row = this.state.row;
       const col = this.state.col;
       if(row != null && col!=null) {
-        console.log('row: ' + row);
-        console.log('col: ' + col);
-
-        console.log('i: ' + i);
-        console.log('j: ' + j);
-
-        console.log(!((row -1) <= i && i <= (row + 1)));
-        console.log(!((col -1) <= j && j <= (col + 1)));
-        console.log(!((row -1) <= i && i  <= (row + 1)) || !((col -1) <= j && j <= (col + 1)) );
         if( !((row -1) <= i && i  <= (row + 1)) || !((col -1) <= j && j <= (col + 1)) ) {
           alert('Cannot click this');
           return;
@@ -117,9 +153,6 @@ class Game extends React.Component {
         currentWord: currentWord.concat(this.state.board[i][j]),
         currentWordSteps: currentWordSteps.concat({row: i, col: j, letter: this.state.board[i][j] }),
       })
-
-      console.log(this.state);
-      console.log(i + ',' + j + '=' + this.state.board[i][j]);
     }
 
     highlight(i,j) {
@@ -140,16 +173,10 @@ class Game extends React.Component {
       fetch('http://localhost:3000/boards/1')
       .then(res =>res.json())
       .then((data) => {
-        console.log(this.state);
         const board =  this.state.board;
-    
-        console.log(data);
         data.squares.forEach(square => {
-          console.log(square.i+","+ square.i+"="+square.character)
           board[square.i][square.j] = square.character;
-    
         })
-        console.log(board)
         this.setState({
           board : board,
           loading: false,
@@ -160,11 +187,7 @@ class Game extends React.Component {
           loading: false,
           serverNotFound: true
         })
-        console.log(err);
-      });
-      // console.log(board[0][0]);
-      // return board;
-    
+      });    
     }
 }
 
