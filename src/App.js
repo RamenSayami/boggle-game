@@ -22,17 +22,19 @@ class Game extends React.Component {
       currentWord: '',
       correctWords: [],
     };
-    this.getBoard();
     this.textInput = this.textInput.bind(this);
     this.submitWord = this.submitWord.bind(this);
+  }
 
+  componentDidMount() {
+    this.getBoard();
   }
 
 
   render() {
       return (
           <div className="game">
-          {this.state.loading &&  <div class="loader"></div>}
+          {this.state.loading &&  <div className="loader"></div>}
           {!this.state.loading &&  this.state.serverNotFound && <div> Backend not found! Try running backend first.</div>}
 
           {!this.state.loading &&  !this.state.serverNotFound &&  <div>
@@ -96,7 +98,7 @@ class Game extends React.Component {
       });
     }
 
-    submitWord(event) {
+    submitWord() {
       const currentWord = this.state.currentWord;
       const correctWords = this.state.correctWords;
       const requestOption = {
@@ -104,15 +106,28 @@ class Game extends React.Component {
         headers: { 'Content-Type' : 'application/json' },
         body: JSON.stringify({ word: currentWord})
       };
+      console.log("posting word")
       fetch('http://localhost:3000/boards/1/correct_words/', requestOption)
-        .then(async res => {
-          const payload = await res.json();
+        .then(res => {
+          console.log("got response")
+          console.log(res)
+          // console.log(res.json())
+          // return res;
+
+          const payload = res.json();
+                    console.log(payload);
+
+          console.log("evalutating ok or not")
           if (!res.ok) {
-            return Promise.reject(payload.message);
+            console.log("not ok")
+
+            return Promise.reject(payload);
           }
-          return payload;
+          console.log("returning promise")
+          return Promise.resolve(payload);
          })
         .then(data => {
+          console.log(data)
           correctWords.push(currentWord);
           this.setState({
             correctWords: correctWords,
@@ -120,10 +135,11 @@ class Game extends React.Component {
             col: null,
             currentWord: ""
           })
-
+          console.log("Added word " + correctWords)
         })
-        .catch(err => {
-          alert(err);
+        .catch(err => { 
+          console.log(err);
+          alert("Incorrect Word");
           this.setState({
             row: null,
             col: null,
