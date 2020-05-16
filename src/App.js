@@ -1,10 +1,10 @@
 import React from 'react';
 import './App.css';
 import Square from './square/square';
-// import 'bootstap/dist/css/bootstapbootstrap.min.css' 
-import Container from 'react-bootstrap/Container';
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
+import 'bootstrap/dist/css/bootstrap.css';
+// import Container from 'react';
+// import Row from 'react';
+// import Col from 'react';
 
 
 class Game extends React.Component {
@@ -38,9 +38,9 @@ class Game extends React.Component {
           {!this.state.loading &&  this.state.serverNotFound && <div> Backend not found! Try running backend first.</div>}
 
           {!this.state.loading &&  !this.state.serverNotFound &&  <div>
-          <Container>
-            <Row>
-              <Col sm={6}>
+          <div className="container">
+            <div className="row">
+              <div className="col-md-2">
             <div className="board-row">
                 {this.renderSquare(0,0)}
                 {this.renderSquare(0,1)}
@@ -65,15 +65,20 @@ class Game extends React.Component {
                 {this.renderSquare(3,2)}
                 {this.renderSquare(3,3)}
               </div>
-              </Col>
-              <Col sm={6}>
+              </div>
+              <div className="col-md-3">
               <form onSubmit={()=>this.submitWord()}>
                 <input type="text" value={this.state.currentWord} onChange={(event)=>this.textInput(event)} />
                 <input type="submit" value="Submit" />
               </form>
-              </Col>
-            </Row>
-          </Container>
+              </div>
+              <div className="col-md-3">
+                <h4>Correct Words:</h4>
+                <ul>{this.state.correctWords}
+                </ul>
+              </div>
+            </div>
+          </div>
           </div>
           } 
         </div>
@@ -106,28 +111,18 @@ class Game extends React.Component {
         headers: { 'Content-Type' : 'application/json' },
         body: JSON.stringify({ word: currentWord})
       };
-      console.log("posting word")
+      console.log("")
       fetch('http://localhost:3000/boards/1/correct_words/', requestOption)
         .then(res => {
-          console.log("got response")
-          console.log(res)
-          // console.log(res.json())
-          // return res;
-
           const payload = res.json();
-                    console.log(payload);
-
-          console.log("evalutating ok or not")
           if (!res.ok) {
-            console.log("not ok")
-
             return Promise.reject(payload);
           }
-          console.log("returning promise")
           return Promise.resolve(payload);
          })
         .then(data => {
-          console.log(data)
+          console.log("success" + currentWord)
+
           correctWords.push(currentWord);
           this.setState({
             correctWords: correctWords,
@@ -135,10 +130,9 @@ class Game extends React.Component {
             col: null,
             currentWord: ""
           })
-          console.log("Added word " + correctWords)
+          console.log(currentWord)
         })
         .catch(err => { 
-          console.log(err);
           alert("Incorrect Word");
           this.setState({
             row: null,
@@ -147,12 +141,9 @@ class Game extends React.Component {
           })
 
         })
-      //submit currentWord
     }
 
     handleClick(i,j) {
-      //check i, j in state is null then only allow, natra dont allow. 
-
       const currentWord = this.state.currentWord;
       const currentWordSteps = this.state.currentWordSteps;
       const row = this.state.row;
