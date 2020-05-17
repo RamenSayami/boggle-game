@@ -1,5 +1,5 @@
 // import React from 'react';
-import React, { useEffect, useState } from "react";
+import React from "react";
 import './App.css';
 import Square from './square/square';
 import 'bootstrap/dist/css/bootstrap.css';
@@ -24,7 +24,8 @@ class Game extends React.Component {
       currentWordSteps: [],
       currentWord: '',
       correctWords: [],
-      timeUpAt: new Date,
+      timeUpAt: new Date(),
+      score: 0,
     };
     this.textInput = this.textInput.bind(this);
     this.submitWord = this.submitWord.bind(this);
@@ -45,48 +46,60 @@ class Game extends React.Component {
           <div className="container">
             <div className="row">
               <div className="col-md-2">
-            <div className="board-row">
-                {this.renderSquare(0,0)}
-                {this.renderSquare(0,1)}
-                {this.renderSquare(0,2)}
-                {this.renderSquare(0,3)}
-              </div>
-              <div className="board-row">
-                {this.renderSquare(1,0)}
-                {this.renderSquare(1,1)}
-                {this.renderSquare(1,2)}
-                {this.renderSquare(1,3)}
-              </div>
-              <div className="board-row">
-                {this.renderSquare(2,0)}
-                {this.renderSquare(2,1)}
-                {this.renderSquare(2,2)}
-                {this.renderSquare(2,3)}
-              </div>
-              <div className="board-row">
-                {this.renderSquare(3,0)}
-                {this.renderSquare(3,1)}
-                {this.renderSquare(3,2)}
-                {this.renderSquare(3,3)}
-              </div>
+                <div className="board-row">
+                  {this.renderSquare(0,0)}
+                  {this.renderSquare(0,1)}
+                  {this.renderSquare(0,2)}
+                  {this.renderSquare(0,3)}
+                </div>
+                <div className="board-row">
+                  {this.renderSquare(1,0)}
+                  {this.renderSquare(1,1)}
+                  {this.renderSquare(1,2)}
+                  {this.renderSquare(1,3)}
+                </div>
+                <div className="board-row">
+                  {this.renderSquare(2,0)}
+                  {this.renderSquare(2,1)}
+                  {this.renderSquare(2,2)}
+                  {this.renderSquare(2,3)}
+                </div>
+                <div className="board-row">
+                  {this.renderSquare(3,0)}
+                  {this.renderSquare(3,1)}
+                  {this.renderSquare(3,2)}
+                  {this.renderSquare(3,3)}
+                </div>
               </div>
               <div className="col-md-3">
-              <form onSubmit={()=>this.submitWord()}>
-                <input type="text" value={this.state.currentWord} onChange={(event)=>this.textInput(event)} />
-                <input type="submit" value="Submit" />
-              </form>
-              </div>
+                <form onSubmit={(event)=>this.submitWord(event)}>
+                  <input type="text" value={this.state.currentWord} onChange={(event)=>this.textInput(event)} />
+                  <input type="submit" value="Submit" />
+                </form>
+                </div>
               <div className="col-md-3">
                 <h4>Correct Words:</h4>
-                  {/* const listItems = {this.state.correctWords}.map((correctWord, index) => 
-                    <li key={index}>
-                      {correctWord}
+                <ul className="list-group">
+                  {this.state.correctWords.map(listitem => (
+                    <li className="list-group-item list-group-item-primary">
+                      {listitem}
                     </li>
-                  ) */}
+                  ))}
+                </ul>
+                {/* <div>
+                  {this.state.correctWords.map((item, index) => (
+                    <p key={index} item={item} />
+                  ))}
+                </div> */}
+                {/* <ul>{this.state.correctWords}
+                </ul> */}
               </div>
-              <div className="col-md-3">
-              <CountdownTimer key="countDownTimer" timeUpAt={this.state.timeUpAt} />
-                </div>
+              <div className="col-md-2">
+                <CountdownTimer key="countDownTimer" timeUpAt={this.state.timeUpAt} />
+              </div>
+              <div className="col-md-2">
+                <h4>Score: </h4> {this.state.score}
+              </div>
             </div>
           </div>
           </div>
@@ -113,7 +126,8 @@ class Game extends React.Component {
       });
     }
 
-    submitWord() {
+    submitWord(event) {
+      event.preventDefault();
       const currentWord = this.state.currentWord;
       const correctWords = this.state.correctWords;
       const requestOption = {
@@ -123,7 +137,16 @@ class Game extends React.Component {
       };
       console.log("hitting")
       fetch('http://localhost:3000/boards/1/correct_words/', requestOption)
-        .then(res =>  JSON.stringify(res.json()))
+        .then(res =>  {
+          console.log(res);
+          if(res.status === 200) {
+            return Promise.resolve("Correct Word");
+          } else if (res.status === 400) {
+            return Promise.reject("Word not present in board");
+          } else {
+            return Promise.reject("Incorrect word");
+          }
+        })
         .then(data => {
           console.log("success" + data)
 
@@ -132,9 +155,10 @@ class Game extends React.Component {
             correctWords: correctWords,
             row: null,
             col: null,
-            currentWord: ""
+            currentWord: "",
+            score: correctWords.length
           })
-          console.log(currentWord)
+          console.log(this.state.correctWords)
         })
         .catch(err => { 
           console.log(err)
