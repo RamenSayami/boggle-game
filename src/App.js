@@ -1,10 +1,13 @@
-import React from 'react';
+// import React from 'react';
+import React from "react";
 import './App.css';
 import Square from './square/square';
-// import 'bootstap/dist/css/bootstapbootstrap.min.css' 
-import Container from 'react-bootstrap/Container';
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
+import 'bootstrap/dist/css/bootstrap.css';
+import CountdownTimer from './countDownTimer/count-down-timer';
+
+// import Container from 'react';
+// import Row from 'react';
+// import Col from 'react';
 
 
 class Game extends React.Component {
@@ -21,57 +24,87 @@ class Game extends React.Component {
       currentWordSteps: [],
       currentWord: '',
       correctWords: [],
+      timeUpAt: new Date(),
+      score: 0,
     };
-    this.getBoard();
     this.textInput = this.textInput.bind(this);
     this.submitWord = this.submitWord.bind(this);
+  }
 
+  componentDidMount() {
+    this.getBoard();
   }
 
 
   render() {
       return (
           <div className="game">
-          {this.state.loading &&  <div class="loader"></div>}
+          {this.state.loading &&  <div className="loader"></div>}
           {!this.state.loading &&  this.state.serverNotFound && <div> Backend not found! Try running backend first.</div>}
 
           {!this.state.loading &&  !this.state.serverNotFound &&  <div>
-          <Container>
-            <Row>
-              <Col sm={6}>
-            <div className="board-row">
-                {this.renderSquare(0,0)}
-                {this.renderSquare(0,1)}
-                {this.renderSquare(0,2)}
-                {this.renderSquare(0,3)}
+          <div className="container">
+            <div className="row">
+              <div className="col-md-2">
+                <div className="board-row">
+                  {this.renderSquare(0,0)}
+                  {this.renderSquare(0,1)}
+                  {this.renderSquare(0,2)}
+                  {this.renderSquare(0,3)}
+                </div>
+                <div className="board-row">
+                  {this.renderSquare(1,0)}
+                  {this.renderSquare(1,1)}
+                  {this.renderSquare(1,2)}
+                  {this.renderSquare(1,3)}
+                </div>
+                <div className="board-row">
+                  {this.renderSquare(2,0)}
+                  {this.renderSquare(2,1)}
+                  {this.renderSquare(2,2)}
+                  {this.renderSquare(2,3)}
+                </div>
+                <div className="board-row">
+                  {this.renderSquare(3,0)}
+                  {this.renderSquare(3,1)}
+                  {this.renderSquare(3,2)}
+                  {this.renderSquare(3,3)}
+                </div>
               </div>
-              <div className="board-row">
-                {this.renderSquare(1,0)}
-                {this.renderSquare(1,1)}
-                {this.renderSquare(1,2)}
-                {this.renderSquare(1,3)}
+              <div className="col-md-3">
+                <form onSubmit={(event)=>this.submitWord(event)}>
+                  <div className="form-group">
+                    <input type="text" class="form-control" placeholder="Type your word here" 
+                    value={this.state.currentWord} onChange={(event)=>this.textInput(event)} />
+                    <input type="submit" class="btn btn-primary" value="Submit" />
+                  </div>
+                </form>
+                </div>
+              <div className="col-md-3">
+                <h4>Correct Words:</h4>
+                <ul className="list-group">
+                  {this.state.correctWords.map(listitem => (
+                    <li className="list-group-item list-group-item-primary">
+                      {listitem}
+                    </li>
+                  ))}
+                </ul>
+                {/* <div>
+                  {this.state.correctWords.map((item, index) => (
+                    <p key={index} item={item} />
+                  ))}
+                </div> */}
+                {/* <ul>{this.state.correctWords}
+                </ul> */}
               </div>
-              <div className="board-row">
-                {this.renderSquare(2,0)}
-                {this.renderSquare(2,1)}
-                {this.renderSquare(2,2)}
-                {this.renderSquare(2,3)}
+              <div className="col-md-2">
+                <CountdownTimer key="countDownTimer" timeUpAt={this.state.timeUpAt} />
               </div>
-              <div className="board-row">
-                {this.renderSquare(3,0)}
-                {this.renderSquare(3,1)}
-                {this.renderSquare(3,2)}
-                {this.renderSquare(3,3)}
+              <div className="col-md-2">
+                <h4>Score: </h4> {this.state.score}
               </div>
-              </Col>
-              <Col sm={6}>
-              <form onSubmit={()=>this.submitWord()}>
-                <input type="text" value={this.state.currentWord} onChange={(event)=>this.textInput(event)} />
-                <input type="submit" value="Submit" />
-              </form>
-              </Col>
-            </Row>
-          </Container>
+            </div>
+          </div>
           </div>
           } 
         </div>
@@ -97,33 +130,44 @@ class Game extends React.Component {
     }
 
     submitWord(event) {
+      event.preventDefault();
       const currentWord = this.state.currentWord;
       const correctWords = this.state.correctWords;
       const requestOption = {
         method: 'post',
         headers: { 'Content-Type' : 'application/json' },
-        body: JSON.stringify({ word: currentWord})
+        body: JSON.stringify({ "word": currentWord})
       };
+      console.log("hitting")
       fetch('http://localhost:3000/boards/1/correct_words/', requestOption)
-        .then(async res => {
-          const payload = await res.json();
-          if (!res.ok) {
-            return Promise.reject(payload.message);
+        .then(res =>  {
+          console.log(res);
+          if(res.status === 200) {
+            return Promise.resolve("Correct Word");
+          } else if (res.status === 400) {
+            return Promise.reject("Word not present in board");
+          } else {
+            return Promise.reject("Incorrect word");
           }
-          return payload;
-         })
+        })
         .then(data => {
+          console.log("success" + data)
+          if(correctWords.includes(currentWord)) {
+            return Promise.reject("Word Already Guessed!")
+          }
           correctWords.push(currentWord);
           this.setState({
             correctWords: correctWords,
             row: null,
             col: null,
-            currentWord: ""
+            currentWord: "",
+            score: correctWords.length
           })
-
+          console.log(this.state.correctWords)
         })
-        .catch(err => {
-          alert(err);
+        .catch(err => { 
+          console.log(err)
+          alert("Incorrect Word: " + err);
           this.setState({
             row: null,
             col: null,
@@ -131,12 +175,9 @@ class Game extends React.Component {
           })
 
         })
-      //submit currentWord
     }
 
     handleClick(i,j) {
-      //check i, j in state is null then only allow, natra dont allow. 
-
       const currentWord = this.state.currentWord;
       const currentWordSteps = this.state.currentWordSteps;
       const row = this.state.row;
@@ -170,6 +211,7 @@ class Game extends React.Component {
     }
 
     getBoard() {    
+      const timeUpAt = new Date(Date.now() + (5 * 60 * 1000));
       fetch('http://localhost:3000/boards/1')
       .then(res =>res.json())
       .then((data) => {
@@ -179,6 +221,7 @@ class Game extends React.Component {
         })
         this.setState({
           board : board,
+          timeUpAt : timeUpAt,
           loading: false,
         })
       })
