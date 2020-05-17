@@ -73,8 +73,11 @@ class Game extends React.Component {
               </div>
               <div className="col-md-3">
                 <form onSubmit={(event)=>this.submitWord(event)}>
-                  <input type="text" value={this.state.currentWord} onChange={(event)=>this.textInput(event)} />
-                  <input type="submit" value="Submit" />
+                  <div className="form-group">
+                    <input type="text" class="form-control" placeholder="Type your word here" 
+                    value={this.state.currentWord} onChange={(event)=>this.textInput(event)} />
+                    <input type="submit" class="btn btn-primary" value="Submit" />
+                  </div>
                 </form>
                 </div>
               <div className="col-md-3">
