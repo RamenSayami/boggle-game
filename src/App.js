@@ -1,7 +1,10 @@
-import React from 'react';
+// import React from 'react';
+import React, { useEffect, useState } from "react";
 import './App.css';
 import Square from './square/square';
 import 'bootstrap/dist/css/bootstrap.css';
+import CountdownTimer from './countDownTimer/count-down-timer';
+
 // import Container from 'react';
 // import Row from 'react';
 // import Col from 'react';
@@ -21,6 +24,7 @@ class Game extends React.Component {
       currentWordSteps: [],
       currentWord: '',
       correctWords: [],
+      timeUpAt: new Date,
     };
     this.textInput = this.textInput.bind(this);
     this.submitWord = this.submitWord.bind(this);
@@ -74,9 +78,15 @@ class Game extends React.Component {
               </div>
               <div className="col-md-3">
                 <h4>Correct Words:</h4>
-                <ul>{this.state.correctWords}
-                </ul>
+                  {/* const listItems = {this.state.correctWords}.map((correctWord, index) => 
+                    <li key={index}>
+                      {correctWord}
+                    </li>
+                  ) */}
               </div>
+              <div className="col-md-3">
+              <CountdownTimer key="countDownTimer" timeUpAt={this.state.timeUpAt} />
+                </div>
             </div>
           </div>
           </div>
@@ -109,19 +119,13 @@ class Game extends React.Component {
       const requestOption = {
         method: 'post',
         headers: { 'Content-Type' : 'application/json' },
-        body: JSON.stringify({ word: currentWord})
+        body: JSON.stringify({ "word": currentWord})
       };
-      console.log("")
+      console.log("hitting")
       fetch('http://localhost:3000/boards/1/correct_words/', requestOption)
-        .then(res => {
-          const payload = res.json();
-          if (!res.ok) {
-            return Promise.reject(payload);
-          }
-          return Promise.resolve(payload);
-         })
+        .then(res =>  JSON.stringify(res.json()))
         .then(data => {
-          console.log("success" + currentWord)
+          console.log("success" + data)
 
           correctWords.push(currentWord);
           this.setState({
@@ -133,7 +137,8 @@ class Game extends React.Component {
           console.log(currentWord)
         })
         .catch(err => { 
-          alert("Incorrect Word");
+          console.log(err)
+          alert("Incorrect Word: " + err);
           this.setState({
             row: null,
             col: null,
@@ -177,6 +182,7 @@ class Game extends React.Component {
     }
 
     getBoard() {    
+      const timeUpAt = new Date(Date.now() + (5 * 60 * 1000));
       fetch('http://localhost:3000/boards/1')
       .then(res =>res.json())
       .then((data) => {
@@ -186,6 +192,7 @@ class Game extends React.Component {
         })
         this.setState({
           board : board,
+          timeUpAt : timeUpAt,
           loading: false,
         })
       })
