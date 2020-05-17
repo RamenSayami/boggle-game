@@ -152,7 +152,9 @@ class Game extends React.Component {
         })
         .then(data => {
           console.log("success" + data)
-
+          if(correctWords.includes(currentWord)) {
+            return Promise.reject("Word Already Guessed!")
+          }
           correctWords.push(currentWord);
           this.setState({
             correctWords: correctWords,
