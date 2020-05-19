@@ -74,9 +74,9 @@ class Game extends React.Component {
               <div className="col-md-3">
                 <form onSubmit={(event)=>this.submitWord(event)}>
                   <div className="form-group">
-                    <input type="text" class="form-control" placeholder="Type your word here" 
+                    <input type="text" className="form-control" placeholder="Type your word here" 
                     value={this.state.currentWord} onChange={(event)=>this.textInput(event)} />
-                    <input type="submit" class="btn btn-primary" value="Submit" />
+                    <input type="submit" className="btn btn-primary" value="Submit" />
                   </div>
                 </form>
                 </div>
@@ -84,7 +84,7 @@ class Game extends React.Component {
                 <h4>Correct Words:</h4>
                 <ul className="list-group">
                   {this.state.correctWords.map(listitem => (
-                    <li className="list-group-item list-group-item-primary">
+                    <li className="list-group-item list-group-item-primary" key={listitem}>
                       {listitem}
                     </li>
                   ))}
@@ -114,9 +114,11 @@ class Game extends React.Component {
 
     renderSquare(i,j) {
         const higlight = this.highlight(i,j);
+        const selected = this.selected(i,j);
         return <Square 
         value={this.state.board[i][j]} 
-        highlight ={higlight} 
+        highlight = {higlight} 
+        selected = {selected}
         onClick={() => this.handleClick(i,j)}
         />;
     }   
@@ -161,6 +163,7 @@ class Game extends React.Component {
             row: null,
             col: null,
             currentWord: "",
+            currentWordSteps: [],
             score: correctWords.length
           })
           console.log(this.state.correctWords)
@@ -171,7 +174,8 @@ class Game extends React.Component {
           this.setState({
             row: null,
             col: null,
-            currentWord: ""
+            currentWord: "",
+            currentWordSteps: [],
           })
 
         })
@@ -182,18 +186,34 @@ class Game extends React.Component {
       const currentWordSteps = this.state.currentWordSteps;
       const row = this.state.row;
       const col = this.state.col;
-      if(row != null && col!=null) {
-        if( !((row -1) <= i && i  <= (row + 1)) || !((col -1) <= j && j <= (col + 1)) ) {
-          alert('Cannot click this');
+      if(row === i && col ===j) {
+        alert("Cannot click the same same square!")
+        return;
+      }
+      let continues = true;
+      currentWordSteps.forEach(step => {
+        if(step.row === i && step.col === j) {
+          alert("tile already clicked!")
+          continues = false;
           return;
         }
-      }
-      this.setState({
-        row : i,
-        col : j,
-        currentWord: currentWord.concat(this.state.board[i][j]),
-        currentWordSteps: currentWordSteps.concat({row: i, col: j, letter: this.state.board[i][j] }),
       })
+      if(continues) {
+        console.log("continue")
+        if(row != null && col!=null) {
+          if( !((row -1) <= i && i  <= (row + 1)) || !((col -1) <= j && j <= (col + 1)) ) {
+            alert('Cannot click this');
+            return;
+          }
+        }
+        console.log("sad")
+        this.setState({
+          row : i,
+          col : j,
+          currentWord: currentWord.concat(this.state.board[i][j]),
+          currentWordSteps: currentWordSteps.concat({row: i, col: j, letter: this.state.board[i][j] }),
+        })
+      }      
     }
 
     highlight(i,j) {
@@ -208,6 +228,17 @@ class Game extends React.Component {
         return false;
       }
       return false;
+    }
+
+    selected(i,j) {
+      const currentWordSteps = this.state.currentWordSteps;
+      let selected = false;
+      currentWordSteps.forEach(step => {
+        if(step.row === i && step.col === j) {
+          selected = true;
+        }
+      })
+      return selected;
     }
 
     getBoard() {    
