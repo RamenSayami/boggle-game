@@ -20,6 +20,7 @@ class Game extends React.Component {
       currentWord: '',
       correctWords: [],
       timeUpAt: new Date(),
+      timeup: false,
       score: 0,
     };
     this.textInput = this.textInput.bind(this);
@@ -28,7 +29,14 @@ class Game extends React.Component {
 
   componentDidMount() {
     this.getBoard();
+    this.interval = setInterval(() => {
+      const timeUp = this.state.timeUpAt < new Date();
+      this.setState({ timeUp: timeUp })
+  }, 1000);
+
   }
+
+  
 
 
   render() {
@@ -240,7 +248,7 @@ class Game extends React.Component {
 
     getBoard() {    
       // const timeUpAt = new Date(Date.now() + (5 * 60 * 1000));
-      const timeUpAt = new Date(Date.now() + (1 * 1 * 1000));
+      const timeUpAt = new Date(Date.now() + (1 * 60 * 1000));
       fetch('http://localhost:3000/boards/1')
       .then(res =>res.json())
       .then((data) => {
