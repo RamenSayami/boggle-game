@@ -8,9 +8,9 @@ export default function CountdownTimer({timeUpAt}) {
       if (difference > 0) {
         timeLeft = {
           minutes: Math.floor((difference / 1000 / 60) % 60),
-          seconds: Math.floor((difference / 1000) % 60)
+          seconds: Math.ceil((difference / 1000) % 60)
         };
-      }
+      } 
   
       return timeLeft;
     };

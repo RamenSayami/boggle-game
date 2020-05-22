@@ -1,14 +1,8 @@
-// import React from 'react';
 import React from "react";
 import './App.css';
 import Square from './square/square';
 import 'bootstrap/dist/css/bootstrap.css';
 import CountdownTimer from './countDownTimer/count-down-timer';
-
-// import Container from 'react';
-// import Row from 'react';
-// import Col from 'react';
-
 
 class Game extends React.Component {
 
@@ -19,6 +13,7 @@ class Game extends React.Component {
       row: null, 
       col: null,
       loading: true,
+      submitting: false,
       serverNotFound: false,
       history: [],
       currentWordSteps: [],
@@ -74,9 +69,12 @@ class Game extends React.Component {
               <div className="col-md-3">
                 <form onSubmit={(event)=>this.submitWord(event)}>
                   <div className="form-group">
-                    <input type="text" className="form-control" placeholder="Type your word here" 
-                    value={this.state.currentWord} onChange={(event)=>this.textInput(event)} />
-                    <input type="submit" className="btn btn-primary" value="Submit" />
+                    <input disabled={(this.state.submitting || this.state.timeUpAt < new Date()) ? "disabled" : ""} type="text" 
+                      className="form-control" placeholder="Type your word here" 
+                      value={this.state.currentWord} onChange={(event)=>this.textInput(event)} />
+                    <input disabled={(this.state.submitting || this.state.timeUpAt < new Date())? "disabled" : ""} type="submit" 
+                      className="btn btn-primary" value={(this.state.submitting)? "Submitting..." : "Submit"} />
+
                   </div>
                 </form>
                 </div>
@@ -89,13 +87,6 @@ class Game extends React.Component {
                     </li>
                   ))}
                 </ul>
-                {/* <div>
-                  {this.state.correctWords.map((item, index) => (
-                    <p key={index} item={item} />
-                  ))}
-                </div> */}
-                {/* <ul>{this.state.correctWords}
-                </ul> */}
               </div>
               <div className="col-md-2">
                 <CountdownTimer key="countDownTimer" timeUpAt={this.state.timeUpAt} />
@@ -133,6 +124,10 @@ class Game extends React.Component {
 
     submitWord(event) {
       event.preventDefault();
+      const submitting = this.state.submitting;
+      this.setState({
+        submitting: true
+      })
       const currentWord = this.state.currentWord;
       const correctWords = this.state.correctWords;
       const requestOption = {
@@ -154,17 +149,18 @@ class Game extends React.Component {
         })
         .then(data => {
           console.log("success" + data)
-          if(correctWords.includes(currentWord)) {
+          if(correctWords.includes(currentWord.toUpperCase())) {
             return Promise.reject("Word Already Guessed!")
           }
-          correctWords.push(currentWord);
+          correctWords.push(currentWord.toUpperCase());
           this.setState({
             correctWords: correctWords,
             row: null,
             col: null,
             currentWord: "",
             currentWordSteps: [],
-            score: correctWords.length
+            score: correctWords.length,
+            submitting: false
           })
           console.log(this.state.correctWords)
         })
@@ -176,6 +172,7 @@ class Game extends React.Component {
             col: null,
             currentWord: "",
             currentWordSteps: [],
+            submitting: false
           })
 
         })
@@ -242,7 +239,8 @@ class Game extends React.Component {
     }
 
     getBoard() {    
-      const timeUpAt = new Date(Date.now() + (5 * 60 * 1000));
+      // const timeUpAt = new Date(Date.now() + (5 * 60 * 1000));
+      const timeUpAt = new Date(Date.now() + (1 * 1 * 1000));
       fetch('http://localhost:3000/boards/1')
       .then(res =>res.json())
       .then((data) => {
