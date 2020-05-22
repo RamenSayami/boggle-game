@@ -77,12 +77,11 @@ class Game extends React.Component {
               <div className="col-md-3">
                 <form onSubmit={(event)=>this.submitWord(event)}>
                   <div className="form-group">
-                    <input disabled={(this.state.submitting || this.state.timeUpAt < new Date()) ? "disabled" : ""} type="text" 
+                    <input disabled={(this.state.submitting || this.state.timeUp) ? "disabled" : ""} type="text" 
                       className="form-control" placeholder="Type your word here" 
                       value={this.state.currentWord} onChange={(event)=>this.textInput(event)} />
-                    <input disabled={(this.state.submitting || this.state.timeUpAt < new Date())? "disabled" : ""} type="submit" 
+                    <input disabled={(this.state.submitting || this.state.timeUp)? "disabled" : ""} type="submit" 
                       className="btn btn-primary" value={(this.state.submitting)? "Submitting..." : "Submit"} />
-
                   </div>
                 </form>
                 </div>
@@ -247,8 +246,7 @@ class Game extends React.Component {
     }
 
     getBoard() {    
-      // const timeUpAt = new Date(Date.now() + (5 * 60 * 1000));
-      const timeUpAt = new Date(Date.now() + (1 * 60 * 1000));
+      const timeUpAt = new Date(Date.now() + (5 * 60 * 1000));
       fetch('http://localhost:3000/boards/1')
       .then(res =>res.json())
       .then((data) => {
