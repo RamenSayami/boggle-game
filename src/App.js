@@ -1,14 +1,8 @@
-// import React from 'react';
 import React from "react";
 import './App.css';
 import Square from './square/square';
 import 'bootstrap/dist/css/bootstrap.css';
 import CountdownTimer from './countDownTimer/count-down-timer';
-
-// import Container from 'react';
-// import Row from 'react';
-// import Col from 'react';
-
 
 class Game extends React.Component {
 
@@ -19,12 +13,14 @@ class Game extends React.Component {
       row: null, 
       col: null,
       loading: true,
+      submitting: false,
       serverNotFound: false,
       history: [],
       currentWordSteps: [],
       currentWord: '',
       correctWords: [],
       timeUpAt: new Date(),
+      timeup: false,
       score: 0,
     };
     this.textInput = this.textInput.bind(this);
@@ -33,7 +29,14 @@ class Game extends React.Component {
 
   componentDidMount() {
     this.getBoard();
+    this.interval = setInterval(() => {
+      const timeUp = this.state.timeUpAt < new Date();
+      this.setState({ timeUp: timeUp })
+  }, 1000);
+
   }
+
+  
 
 
   render() {
@@ -74,9 +77,11 @@ class Game extends React.Component {
               <div className="col-md-3">
                 <form onSubmit={(event)=>this.submitWord(event)}>
                   <div className="form-group">
-                    <input type="text" class="form-control" placeholder="Type your word here" 
-                    value={this.state.currentWord} onChange={(event)=>this.textInput(event)} />
-                    <input type="submit" class="btn btn-primary" value="Submit" />
+                    <input disabled={(this.state.submitting || this.state.timeUp) ? "disabled" : ""} type="text" 
+                      className="form-control" placeholder="Type your word here" 
+                      value={this.state.currentWord} onChange={(event)=>this.textInput(event)} />
+                    <input disabled={(this.state.submitting || this.state.timeUp)? "disabled" : ""} type="submit" 
+                      className="btn btn-primary" value={(this.state.submitting)? "Submitting..." : "Submit"} />
                   </div>
                 </form>
                 </div>
@@ -84,18 +89,11 @@ class Game extends React.Component {
                 <h4>Correct Words:</h4>
                 <ul className="list-group">
                   {this.state.correctWords.map(listitem => (
-                    <li className="list-group-item list-group-item-primary">
+                    <li className="list-group-item list-group-item-primary" key={listitem}>
                       {listitem}
                     </li>
                   ))}
                 </ul>
-                {/* <div>
-                  {this.state.correctWords.map((item, index) => (
-                    <p key={index} item={item} />
-                  ))}
-                </div> */}
-                {/* <ul>{this.state.correctWords}
-                </ul> */}
               </div>
               <div className="col-md-2">
                 <CountdownTimer key="countDownTimer" timeUpAt={this.state.timeUpAt} />
@@ -114,9 +112,11 @@ class Game extends React.Component {
 
     renderSquare(i,j) {
         const higlight = this.highlight(i,j);
+        const selected = this.selected(i,j);
         return <Square 
         value={this.state.board[i][j]} 
-        highlight ={higlight} 
+        highlight = {higlight} 
+        selected = {selected}
         onClick={() => this.handleClick(i,j)}
         />;
     }   
@@ -131,6 +131,10 @@ class Game extends React.Component {
 
     submitWord(event) {
       event.preventDefault();
+      const submitting = this.state.submitting;
+      this.setState({
+        submitting: true
+      })
       const currentWord = this.state.currentWord;
       const correctWords = this.state.correctWords;
       const requestOption = {
@@ -152,16 +156,18 @@ class Game extends React.Component {
         })
         .then(data => {
           console.log("success" + data)
-          if(correctWords.includes(currentWord)) {
+          if(correctWords.includes(currentWord.toUpperCase())) {
             return Promise.reject("Word Already Guessed!")
           }
-          correctWords.push(currentWord);
+          correctWords.push(currentWord.toUpperCase());
           this.setState({
             correctWords: correctWords,
             row: null,
             col: null,
             currentWord: "",
-            score: correctWords.length
+            currentWordSteps: [],
+            score: correctWords.length,
+            submitting: false
           })
           console.log(this.state.correctWords)
         })
@@ -171,7 +177,9 @@ class Game extends React.Component {
           this.setState({
             row: null,
             col: null,
-            currentWord: ""
+            currentWord: "",
+            currentWordSteps: [],
+            submitting: false
           })
 
         })
@@ -182,18 +190,34 @@ class Game extends React.Component {
       const currentWordSteps = this.state.currentWordSteps;
       const row = this.state.row;
       const col = this.state.col;
-      if(row != null && col!=null) {
-        if( !((row -1) <= i && i  <= (row + 1)) || !((col -1) <= j && j <= (col + 1)) ) {
-          alert('Cannot click this');
+      if(row === i && col ===j) {
+        alert("Cannot click the same same square!")
+        return;
+      }
+      let continues = true;
+      currentWordSteps.forEach(step => {
+        if(step.row === i && step.col === j) {
+          alert("tile already clicked!")
+          continues = false;
           return;
         }
-      }
-      this.setState({
-        row : i,
-        col : j,
-        currentWord: currentWord.concat(this.state.board[i][j]),
-        currentWordSteps: currentWordSteps.concat({row: i, col: j, letter: this.state.board[i][j] }),
       })
+      if(continues) {
+        console.log("continue")
+        if(row != null && col!=null) {
+          if( !((row -1) <= i && i  <= (row + 1)) || !((col -1) <= j && j <= (col + 1)) ) {
+            alert('Cannot click this');
+            return;
+          }
+        }
+        console.log("sad")
+        this.setState({
+          row : i,
+          col : j,
+          currentWord: currentWord.concat(this.state.board[i][j]),
+          currentWordSteps: currentWordSteps.concat({row: i, col: j, letter: this.state.board[i][j] }),
+        })
+      }      
     }
 
     highlight(i,j) {
@@ -208,6 +232,17 @@ class Game extends React.Component {
         return false;
       }
       return false;
+    }
+
+    selected(i,j) {
+      const currentWordSteps = this.state.currentWordSteps;
+      let selected = false;
+      currentWordSteps.forEach(step => {
+        if(step.row === i && step.col === j) {
+          selected = true;
+        }
+      })
+      return selected;
     }
 
     getBoard() {    

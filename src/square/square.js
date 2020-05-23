@@ -4,26 +4,37 @@ import './square.css';
 class Square extends React.Component {
 
     render() {
-        if(this.props.highlight) {
+        if(this.props.selected) {
             return (
                 <button 
-                className="higlighted-square" 
+                className="selected-square" 
                 onClick={this.props.onClick} >
                     {this.props.value}
             
                 </button>
             );
         } else {
-            return (
-                <button 
-                className="square" 
-                onClick={this.props.onClick} >
-                    {this.props.value}
-            
-                </button>
-            );
-      
+            if(this.props.highlight) {
+                return (
+                    <button 
+                    className="higlighted-square" 
+                    onClick={this.props.onClick} >
+                        {this.props.value}
+                
+                    </button>
+                );
+            } else {
+                return (
+                    <button 
+                    className="square" 
+                    onClick={this.props.onClick} >
+                        {this.props.value}
+                
+                    </button>
+                );
+            }
         }
+        
     }
 }
 
