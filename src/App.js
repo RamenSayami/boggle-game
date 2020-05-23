@@ -40,7 +40,7 @@ class Game extends React.Component {
       return (
           <div className="game">
           {this.state.loading &&  <div className="loader"></div>}
-          {!this.state.loading &&  this.state.serverNotFound && <div> Backend not found! Try running backend first.</div>}
+          {!this.state.loading &&  this.state.serverNotFound && <div> Backend not found! Try running backend first from <a href="https://github.com/RamenSayami/boggle">here</a></div>}
 
           {!this.state.loading &&  !this.state.serverNotFound &&  <div>
           <div className="container">
