@@ -36,9 +36,6 @@ class Game extends React.Component {
 
   }
 
-  
-
-
   render() {
       return (
           <div className="game">
@@ -73,6 +70,7 @@ class Game extends React.Component {
                   {this.renderSquare(3,2)}
                   {this.renderSquare(3,3)}
                 </div>
+                <button className="btn btn-info" onClick={(event) => this.rotate(event)}>Rotate</button>
               </div>
               <div className="col-md-3">
                 <form onSubmit={(event)=>this.submitWord(event)}>
@@ -125,13 +123,30 @@ class Game extends React.Component {
       this.setState({
         currentWord: event.target.value,
         row: null,
-        col: null
+        col: null,
+        currentWordSteps: [],
       });
+    }
+
+    rotate(event) {
+      const newBoard = [...Array(4)].map(item => Array(4).fill('A'));
+      const board = this.state.board;
+      console.log(newBoard);
+      for(var j=0 ; j<4; j++) {
+        for(var i=3 ; i >=0 ; i--) {
+          newBoard[j][3-i] = board[i][j];
+        }
+      }
+      this.setState({
+        board: newBoard,
+        currentWordSteps: [],
+        row: null,
+        col: null,
+      })
     }
 
     submitWord(event) {
       event.preventDefault();
-      const submitting = this.state.submitting;
       this.setState({
         submitting: true
       })
